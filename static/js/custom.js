@@ -1,0 +1,1 @@
+import * as boostrap from './bootstrap.min.js';

@@ -7,14 +7,15 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     # groups = ["broadcast"]
 
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = 'notification_%s' % self.room_name
+        self.room_name = self.scope['url_route']['kwargs']['user_id']
+        self.room_group_name = 'notification_to_'+str(self.room_name)
 
         # join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
+        # print(self.channel_name, self.room_name)
         await self.accept()
 
     async def receive(self, text_data=None, bytes_data=None):
@@ -34,8 +35,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def send_notification(self, event):
         message = event['message']
+        post_id = event['post_id']
 
         # send message to WebSocket
         await self.send(text_data=json.dumps({
-            'message': message
+            'message': message,
+            'post_id': post_id
         }))

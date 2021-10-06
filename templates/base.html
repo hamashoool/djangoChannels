@@ -12,7 +12,7 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Navbar</a>
+        <a class="navbar-brand" href="#">{{ request.user.username }}</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
                 aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -41,14 +41,15 @@
     {% endblock content %}
 </section>
 <script type="module" src="{% static 'js/custom.js' %}"></script>
-{{ room_name|json_script:"room-name" }}
+<script src="{% static 'js/reconectingWebsocket.js' %}"></script>
 <script>
-    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+    const roomName = {{ request.user.id }};
 
-    const NotificationSocket = new WebSocket(
+    const NotificationSocket = new ReconnectingWebSocket(
+    {#const NotificationSocket = new WebSocket(#}
         'ws://'
         + window.location.host
-        + '/ws/notification/'
+        + '/ws/notification/for/user/'
         + roomName
         + '/'
     );
@@ -58,13 +59,22 @@
         //document.querySelector('#chat-log').value += (data.message + '\n');
         console.log(data);
         document.getElementById("notification-dropdown").innerHTML = "<li class='dropdown-item'>" + data.message + "</li><hr class='dropdown-divider'>" + document.getElementById("notification-dropdown").innerHTML;
-        document.getElementById("noti-counter").innerHTML = parseInt(document.getElementById("noti-counter").innerHTML) + 1
+        document.getElementById("noti-counter").innerHTML = parseInt(document.getElementById("noti-counter").innerHTML) + 1;
+        var like = document.getElementById("like_count"+data.post_id);
+        var like_count = parseInt((like.innerText))
+        like.innerHTML = like_count+1
+
+        {#console.log(like_count+1)#}
+    };
+
+    NotificationSocket.onopen = function (e) {
+        console.log('Notification socket is open now');
     };
 
     NotificationSocket.onclose = function (e) {
-        console.error('Chat socket closed unexpectedly');
+        console.error('Notification socket closed unexpectedly');
     };
-</script>
 
+</script>
 </body>
 </html>
